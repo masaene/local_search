@@ -107,9 +107,9 @@ class Solver:
 		org_list = copy.deepcopy(best_l)
 		best_l2 = org_list
 
-		for a,b in itertools.combinations(range(1,len(best_l)-1), 2):
-			new_route = np.vstack((best_l2[:a], best_l2[a:b+1][::-1]))
-			new_route = np.vstack((new_route, best_l2[b+1:]))
+		for a,b in itertools.combinations(range(1,len(best_l2)-1), 2):
+			new_route_a = np.vstack((best_l2[:a], best_l2[a:b+1][::-1]))
+			new_route = np.vstack((new_route_a, best_l2[b+1:]))
 			count = self.count(new_route)
 			if count < best:
 				best = count
@@ -130,6 +130,8 @@ class Solver:
 					self.update_graph(name, '', best, best_l2)
 			else:
 				break
+		if name is not None:
+				self.update_graph(name, '', best, best_l2)
 		return best, copy.deepcopy(best_l2)
 
 	def sa2opt_all(self, name:str, best_l, t, c):
@@ -172,6 +174,10 @@ class Solver:
 		ans_str = f'{name}({remarks}):ret={round(ans,2)}, diff={divergence_ratio}%'
 		fig.suptitle(ans_str)
 		ax.plot(local_l[:,0], local_l[:,1])
+		"""
+		for no, (_x, _y) in enumerate(zip(local_l[:,0], local_l[:,1])):
+			ax.text(_x,_y,no)
+		"""
 		graph.pyplot(fig)
 		plt.cla()
 
