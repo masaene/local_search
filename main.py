@@ -68,28 +68,22 @@ class Solver:
     def solve_2opt(self):
         city_num = self.city_num
         ret_index_list = list(range(city_num))
+
+        diff = self.tsp_route_list[:, np.newaxis, :] - self.tsp_route_list[np.newaxis, :, :] 
+        diff_matrix = np.linalg.norm(diff, axis=-1)
+
         for a,b in itertools.combinations(range(city_num),2):
-            tmp = ret_index_list[:]
-            tmp[a:b+1] = tmp[a:b+1][::-1]
 
-            if a == 0:
-                new_diff1 = self.tsp_route_list[tmp[a]] - self.tsp_route_list[tmp[-1]]
-                crt_diff1 = self.tsp_route_list[ret_index_list[a]] - self.tsp_route_list[-1]
-            else:
-                new_diff1 = self.tsp_route_list[tmp[a-1]] - self.tsp_route_list[tmp[a]]
-                crt_diff1 = self.tsp_route_list[ret_index_list[a-1]] - self.tsp_route_list[ret_index_list[a]]
+            crt_diff1 = diff_matrix[ret_index_list[a-1],ret_index_list[a]]
+            new_diff1 = diff_matrix[ret_index_list[a-1],ret_index_list[b]]
 
-            if b == (city_num-1):
-                new_diff2 = self.tsp_route_list[tmp[b]] - self.tsp_route_list[tmp[0]]
-                crt_diff2 = self.tsp_route_list[ret_index_list[b]] - self.tsp_route_list[ret_index_list[0]]
-            else:
-                new_diff2 = self.tsp_route_list[tmp[b+1]] - self.tsp_route_list[tmp[b]]
-                crt_diff2 = self.tsp_route_list[ret_index_list[b+1]] - self.tsp_route_list[ret_index_list[b]]
+            crt_diff2 = diff_matrix[ret_index_list[b],ret_index_list[(b+1)%city_num]]
+            new_diff2 = diff_matrix[ret_index_list[a],ret_index_list[(b+1)%city_num]]
 
-            new_diff_total = np.linalg.norm(new_diff1) + np.linalg.norm(new_diff2)
-            crt_diff_total = np.linalg.norm(crt_diff1) + np.linalg.norm(crt_diff2)
+            new_diff_total = new_diff1 + new_diff2
+            crt_diff_total = crt_diff1 + crt_diff2
             if new_diff_total < crt_diff_total:
-                ret_index_list = tmp
+                ret_index_list[a:b+1] = ret_index_list[a:b+1][::-1]
 
             yield ret_index_list
 
@@ -244,13 +238,13 @@ if __name__ == '__main__':
         coordinate_arr = solver.idx2vec(ret_index_list + [ret_index_list[0]])
         #draw(graph_area, coordinate_arr, 'nearest')
     draw(graph_area, coordinate_arr, 'nearest')
-
     solver.update(coordinate_arr)
 
     graph_area = st.empty()
     for i, ret_index_list in enumerate(solver.solve_2opt()):
         coordinate_arr = solver.idx2vec(ret_index_list + [ret_index_list[0]])
     draw(graph_area, coordinate_arr, '2opt')
+    solver.update(coordinate_arr)
 
     '''
     solv.add_graph('greedy all')
